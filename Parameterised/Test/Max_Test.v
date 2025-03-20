@@ -3,9 +3,9 @@
 // Company: IIT Gandhinagar
 // Engineer: Vivek Raj
 // 
-// Create Date: 20.03.2025 19:33:38
-// Design Name: Max Selector
-// Module Name: Max Pooler
+// Create Date: 21.03.2025 01:33:38
+// Design Name: Max Selector Tester
+// Module Name: Kernel Pooler Tester
 // Project Name: S204
 // Target Devices: FPGA
 // Tool Versions: NA
