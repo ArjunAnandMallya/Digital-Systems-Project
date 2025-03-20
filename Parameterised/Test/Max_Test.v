@@ -5,7 +5,7 @@
 // 
 // Create Date: 21.03.2025 01:33:38
 // Design Name: Max Selector Tester
-// Module Name: Kernel Pooler Tester
+// Module Name: Kernel Pooler Testing
 // Project Name: S204
 // Target Devices: FPGA
 // Tool Versions: NA
