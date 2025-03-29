@@ -1,0 +1,201 @@
+
+`timescale 1ns / 1ps
+
+module Pooling_Bram(clk, start, infer_addr, infer_dout, done, curr_state);
+input clk;
+input start;
+input [3:0] infer_addr;
+output [7:0] infer_dout;
+output reg done;
+output reg [3:0] curr_state;
+//parametrisation
+
+parameter inpsize = 128*128;
+parameter x = 128;
+parameter outsize = 63*63;
+parameter startwritingat = 128*128;
+parameter k = 3;
+parameter stride = 2;
+reg [3:0] state = 4'b0000; //start state
+reg [15:0] counter;
+reg [15:0] i;
+reg[15:0] j;
+reg [8:0] movex, movey;
+reg [15:0] writecounter;
+reg ren;
+reg wen;
+reg [15:0] addr;
+reg [7:0] din;
+
+wire [7:0] dout;
+reg [(8*k*k)-1:0] flattened;
+reg [(8*outsize)-1:0] pooled_results;
+
+wire [(8*outsize)-1:0] pooling_module_out;
+
+
+kernalpooling uut(
+    .b(flattened), out(pooling_module_out)
+
+        );
+assign infer_dout = dout;
+
+//STATES:
+// 0000 -> start
+// 0001 -> read
+// 0010 -> idle1
+// 0011 -> idle2
+// 0100 -> store in flattened
+// 0101 -> Pooling
+// 0110 -> Write
+// 0111 -> idle 3
+// 1000 -> idle 4
+// 1001 -> Stop
+reg [15:0] counter1;
+reg [15:0] writecounter1;
+reg ren1;
+reg wen1;
+reg [15:0] addr1;
+reg [7:0] din1;
+
+wire [7:0] dout1;
+
+BRAM inst1(.clk(clk), .en(ren || wen), .ren(ren), .wen(wen), .addr(addr), .din(din), .dout(dout));
+BRAMout inst2(.clk(clk), .en(ren1 || wen1), .ren(ren1), .wen(wen1), .addr(addr1), .din(din1), .dout(dout1));
+
+
+
+always @ (posedge clk)
+begin
+    case(state)
+    
+        4'b0000: //start state
+        begin
+                addr <= 0;
+                din <= 0;
+                ren <= 0;
+                wen <= 0;
+                counter <= 0;
+                i <=0;
+                j<=0;
+                movex<= 0;
+                movey <= 0;
+                writecounter <= 0;
+                addr1 <= 0;
+                din1 <= 0;
+                ren1 <= 0;
+                wen1 <= 0;
+                counter1 <= 0;
+                
+                done <= 0;
+                curr_state <= 4'b0000; 
+            if(start) state <= 4'b0001;
+            else begin state <= 4'b0000;
+        
+            curr_state <= 4'b0000; end 
+        end
+        
+        4'b0001: // read state
+        begin
+            ren <= 1;
+            wen <= 0;
+            addr <= (128*(i+movex)+ j+movey);
+            state <= 4'b0010;
+            curr_state <= 4'b0001;
+        end
+        
+        4'b0010: // idle1 state
+        begin
+            state <= 4'b0011;
+            curr_state <= 4'b0010;
+        end
+        
+        4'b0011: // idle2 state
+        begin
+            ren <= 0;
+            wen <= 0;
+            state <= 4'b0100;
+            curr_state <= 4'b0011;
+        end
+        4'b0100: // store in flattened and then perform pooling
+        begin
+        curr_state <= 4'b0100;
+        flattened[ (counter * 8) +: 8 ] <= dout;
+        if (counter == (k*k) -1 ) begin
+        pooled_results <= pooling_module_out;
+        counter <= 0;
+
+        state <= 4'b0101;
+        end
+        else begin
+        counter <= counter+1;
+        if (i != k-1)begin
+            i <= i+1;
+        end
+        else if (j != k-1) begin
+            j <= j+1;
+        end
+
+        state <= 4'b0001;
+        end
+        end
+        
+        
+        4'b0101: // write state
+        begin
+            din <= pooled_results;
+            addr <= counter1;
+            wen1 <= 1;
+            ren1 <= 0;
+            
+            state <= 4'b0110;
+            curr_state <= 4'b0101;
+        end
+    
+        4'b0110: begin // idle3 state
+         state <= 4'b0111;
+            curr_state <= 4'b0110;
+            end
+        
+        4'b0111: // idle4 state 
+        begin
+            ren1 <= 0;
+            wen1 <= 0;
+            if (movex < (x-k)) begin
+                movex <= movex + stride;
+                i <= 0;
+                j <= 0;
+                counter<= 0;
+                state <= 4'b0001;
+            end
+            else begin
+                movex <= movex +1;
+                if (movey < x- k)begin
+                    movey <= movey +stride;
+                    state <= 4'b0001;
+                end 
+                else begin
+            state <= 4'b1000;
+                end
+
+            end
+            
+
+            curr_state <= 4'b0111;
+     
+        end
+        
+        4'b1000: 
+        begin
+            done <= 1;
+            state <= 4'b1000;
+            ren <= 1;
+            wen <= 0;
+            addr <= infer_addr;
+            curr_state <= 4'b1000;
+        end
+        
+        default: state <= 4'b0000;
+    endcase
+end
+endmodule
