@@ -4,16 +4,16 @@
 module Pooling_Bram(clk, start, infer_addr, infer_dout, done, curr_state);
 input clk;
 input start;
-input [3:0] infer_addr;
+input [15:0] infer_addr;
 output [7:0] infer_dout;
 output reg done;
 output reg [3:0] curr_state;
 //parametrisation
 
-parameter inpsize = 128*128;
-parameter x = 128;
-parameter outsize = 63*63;
-parameter startwritingat = 128*128;
+parameter inpsize = 7*7;
+parameter x = 7;
+parameter outsize = 3*3;
+parameter startwritingat = 7*7;
 parameter k = 3;
 parameter stride = 2;
 reg [3:0] state = 4'b0000; //start state
@@ -29,16 +29,16 @@ reg [7:0] din;
 
 wire [7:0] dout;
 reg [(8*k*k)-1:0] flattened;
-reg [(8*outsize)-1:0] pooled_results;
+reg [7:0] pooled_results;
 
-wire [(8*outsize)-1:0] pooling_module_out;
+wire [7:0] pooling_module_out;
 
 
 kernalpooling uut(
-    .b(flattened), out(pooling_module_out)
+    .b(flattened), .out(pooling_module_out)
 
         );
-assign infer_dout = dout;
+
 
 //STATES:
 // 0000 -> start
@@ -59,7 +59,7 @@ reg [15:0] addr1;
 reg [7:0] din1;
 
 wire [7:0] dout1;
-
+assign infer_dout = dout1;
 BRAM inst1(.clk(clk), .en(ren || wen), .ren(ren), .wen(wen), .addr(addr), .din(din), .dout(dout));
 BRAMout inst2(.clk(clk), .en(ren1 || wen1), .ren(ren1), .wen(wen1), .addr(addr1), .din(din1), .dout(dout1));
 
@@ -70,7 +70,7 @@ begin
     case(state)
     
         4'b0000: //start state
-        begin
+        begin //initializing all the wires and regs
                 addr <= 0;
                 din <= 0;
                 ren <= 0;
@@ -89,24 +89,24 @@ begin
                 
                 done <= 0;
                 curr_state <= 4'b0000; 
-            if(start) state <= 4'b0001;
-            else begin state <= 4'b0000;
+            if(start) state <= 4'b0001; // if start is 1, move to read state
+            else begin state <= 4'b0000; // if start is 0, stay in the same state
         
             curr_state <= 4'b0000; end 
         end
         
         4'b0001: // read state
         begin
-            ren <= 1;
+            ren <= 1; // set readenable to 1
             wen <= 0;
-            addr <= (128*(i+movex)+ j+movey);
-            state <= 4'b0010;
+            addr <= ((j+movey)*x + i+movex); // movex,movey represents leftmost corner of kernel, i,j represnets the indexs of each element in the kernel
+            state <= 4'b0010; // go to idle 1
             curr_state <= 4'b0001;
         end
         
         4'b0010: // idle1 state
         begin
-            state <= 4'b0011;
+            state <= 4'b0011; //go to idle 2
             curr_state <= 4'b0010;
         end
         
@@ -114,38 +114,45 @@ begin
         begin
             ren <= 0;
             wen <= 0;
-            state <= 4'b0100;
+            state <= 4'b0100; 
             curr_state <= 4'b0011;
         end
-        4'b0100: // store in flattened and then perform pooling
+        4'b0100: // store in flattened 
         begin
         curr_state <= 4'b0100;
-        flattened[ (counter * 8) +: 8 ] <= dout;
-        if (counter == (k*k) -1 ) begin
-        pooled_results <= pooling_module_out;
-        counter <= 0;
+        flattened[ (counter * 8) +: 8 ] <= dout; //store it in the respective index of flattened
+        if (counter == (k*k) -1 ) begin //if all elements in the kernel have been traversed, then move to pooling state
+        counter<=0; //reset counter, i , j for the next kernel
+        i<=0;
+        j<=0;
+        state <= 4'b1001;
+       
 
-        state <= 4'b0101;
         end
         else begin
-        counter <= counter+1;
-        if (i != k-1)begin
-            i <= i+1;
+        counter <= counter + 1; // update counter
+        // if i has not reached k-1, update i, else reset i and increment j
+        if (i == k-1) begin
+            i <= 0;
+            j <= j + 1; // Increment j when i wraps
+        end else begin
+            i <= i + 1;
         end
-        else if (j != k-1) begin
-            j <= j+1;
-        end
-
-        state <= 4'b0001;
+        state <= 4'b0001; // Go back to read next kernel element
         end
         end
         
+        4'b1001: // stote pooled results
+        begin
+        pooled_results <= pooling_module_out; // storepooled results
+        state<= 4'b0101;
+        end
         
         4'b0101: // write state
         begin
-            din <= pooled_results;
-            addr <= counter1;
-            wen1 <= 1;
+            din1 <= pooled_results; //use din1 which is the data in of bram1
+            addr1 <= counter1; 
+            wen1 <= 1; // set write enable to 1
             ren1 <= 0;
             
             state <= 4'b0110;
@@ -153,6 +160,7 @@ begin
         end
     
         4'b0110: begin // idle3 state
+        counter1 <= counter1+ 1;
          state <= 4'b0111;
             curr_state <= 4'b0110;
             end
@@ -161,7 +169,9 @@ begin
         begin
             ren1 <= 0;
             wen1 <= 0;
-            if (movex < (x-k)) begin
+            // if movex has not reached the end of image, then increment movex by stride
+            //else reset movex and check if movey has reached end of image
+            if (movex + stride <= (x-k)) begin
                 movex <= movex + stride;
                 i <= 0;
                 j <= 0;
@@ -169,9 +179,12 @@ begin
                 state <= 4'b0001;
             end
             else begin
-                movex <= movex +1;
-                if (movey < x- k)begin
+                movex <= 0;
+                if (movey +stride <= x- k)begin
                     movey <= movey +stride;
+                    i <= 0;
+                    j <= 0;
+                    counter <= 0;
                     state <= 4'b0001;
                 end 
                 else begin
@@ -185,13 +198,13 @@ begin
      
         end
         
-        4'b1000: 
+        4'b1000: //stop state
         begin
-            done <= 1;
+            done <= 1; // set done flag to 1 to indicate that output image has been computed
             state <= 4'b1000;
-            ren <= 1;
-            wen <= 0;
-            addr <= infer_addr;
+            ren1 <= 1;
+            wen1 <= 0;
+            addr1 <= infer_addr;//set bram1 read address
             curr_state <= 4'b1000;
         end
         
