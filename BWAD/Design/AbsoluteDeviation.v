@@ -23,17 +23,12 @@
 module AbsoluteDeviation(input [7:0]x1, x2, output reg [7:0]ad
 
     );
-    wire signed [8:0] f ;
-    assign f = x1-x2;
-    always @(*) begin
-    if (f >0)begin
-    ad = f;
-    end
-    else begin
-    ad = -1 * f;
-    end
-    
-    
+ always @(*) begin
+        if (x1 >= x2) begin 
+            ad = x1 - x2;   
+        end else begin
+            ad = x2 - x1;   
+        end
     end
     
     
