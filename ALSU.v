@@ -22,5 +22,7 @@
 
 module ALSU(input [7:0]ad0, ad1, ad2,ad3,ad4,ad5, output [7:0] out
     );
-    assign out = (ad0+ad1+ad2+ad3+ad4+ad5)>>3;
+    wire [15:0]f;
+    assign f = (ad0+ad1+ad2+ad3+ad4+ad5)>>3;
+    assign out = f;
 endmodule
