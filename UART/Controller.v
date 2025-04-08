@@ -1,0 +1,109 @@
+module Controller(
+    input clk,
+    input start_pooling,
+    output tx,
+    output tx_busy,
+    output done_uart,
+    output pooling_done,
+    output disabled
+);
+    
+    //Pooling Utils
+    wire [7:0] infer_dout;
+    wire done_pooling;
+    wire [3:0] pool_state;
+    wire actual_clock;
+    reg [15:0] read_addr = 0;
+    
+    Devider clk_devider(clk, done_pooling, actual_clock);
+
+    // UART
+    reg tx_enable = 0;
+    reg [7:0] tx_data;
+    reg [19:0] counter;
+    reg completed=0;
+   
+    // FSM states
+   parameter [4:0] IDLE = 0;
+   parameter [4:0] INIT = 1;
+   parameter [4:0] READ_WAIT = 2;
+   parameter [4:0] LOAD_TX = 3;
+   parameter [4:0] TX_PULSE = 4;
+   parameter [4:0] TX_WAIT = 5;
+   reg [4:0] state = IDLE;
+
+    // UART TX
+   reg [15:0] transmit_counter = 0;
+
+    // Pooling instance
+    Pooling_Bram pooling (
+        .clk(actual_clock),
+        .start(start_pooling),
+        .infer_addr(read_addr),
+        .infer_dout(infer_dout),
+        .done(done_pooling)
+    );
+
+    // UART TX instance
+    uart_tx uart (
+        .clk(actual_clock),
+        .tx_enable(tx_enable & ~completed),
+        .data(tx_data),
+        .tx(tx),
+        .tx_busy(tx_busy)
+    );
+    
+    // Debug Lights
+    assign disabled = completed;
+    assign pooling_done = done_pooling;
+    assign done_uart = (transmit_counter == 63*63-1);
+
+    always @(posedge actual_clock) begin
+        case (state)
+            IDLE: begin
+                tx_enable <= 0;
+                if (done_pooling) begin
+                    transmit_counter <= 0;
+                    read_addr <= 0;
+                    state <= INIT;
+                end
+            end
+
+            INIT: begin
+                tx_enable <= 0;
+                state <= READ_WAIT;
+            end
+
+            READ_WAIT: begin
+                // Wait one cycle after setting read address to allow BRAM read
+                tx_enable <= 0;
+                state <= LOAD_TX;
+            end
+
+            LOAD_TX: begin
+                tx_data <= infer_dout;
+                tx_enable <= 1; // pulse for 1 cycle
+                state <= TX_PULSE;
+            end
+
+            TX_PULSE: begin
+                tx_enable <= 0;
+                state <= TX_WAIT;
+            end
+
+            TX_WAIT: begin
+                if (!tx_busy) begin
+                    transmit_counter <= transmit_counter + 1;
+                    read_addr <= transmit_counter + 1;
+
+                    if (transmit_counter == (63*63 - 1)) begin
+                        state <= IDLE;
+//                        completed <= 1;
+                    end
+                    else
+                        state <= READ_WAIT;
+                end
+            end
+        endcase
+    end
+endmodule
