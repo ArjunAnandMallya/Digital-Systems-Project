@@ -25,7 +25,7 @@ reg [7:0] din;
 wire [7:0] dout;
 reg [(8*k*k)-1:0] flattened;
 reg [7:0] pooled_results;
-wire [7:0] pooling_module_out,pooling_module_out_max,pooling_module_out_amd;
+wire [7:0] pooling_module_out,pooling_module_out_max,pooling_module_out_amd,pooling_module_out_avg;
 
 
 kernalpooling uut(
@@ -34,6 +34,7 @@ kernalpooling uut(
         );
 Maxpooling uut34 (.Input(flattened), .Output(pooling_module_out_max));
 kernalpoolingmax uut14( .b(flattened), .out(pooling_module_out_amd));
+kernalpoolingavg uu14( .b(flattened), .out(pooling_module_out_avg));
 
 
 //STATES:
@@ -143,7 +144,8 @@ begin
         begin
         if (mode == 0)pooled_results <= pooling_module_out; // storepooled results for BWAD if mode is 0 
         else if (mode == 1) pooled_results <= pooling_module_out_amd;  // store pooled results for AMD if mode is 1
-        else if (mode ==2) pooled_results <= pooling_module_out_max; // store pooled results for MAX pooling if mode is 2;
+        else if (mode ==2) pooled_results <= pooling_module_out_max;// store pooled results for MAX pooling if mode is 2;
+        else if (mode == 3) pooled_results <= pooling_module_out_avg; //store pooled results for AAD pooling if mode is 3
         state<= 4'b0101;
         end
         
