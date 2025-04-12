@@ -1,19 +1,14 @@
 
 `timescale 1ns / 1ps
 
-module Pooling_Bram(clk, start, infer_addr, infer_dout, done, curr_state);
-input clk;
-input start;
-input [15:0] infer_addr;
-output [7:0] infer_dout;
-output reg done;
-output reg [3:0] curr_state;
+module Pooling_Bram(input clk,start,input [1:0] mode, input [15:0] infer_addr, output [7:0] infer_dout, output reg done, output reg [3:0] curr_state);
+
 //parametrisation
 
 parameter inpsize = 7*7;
 parameter x = 7;
 parameter outsize = 3*3;
-parameter startwritingat = 7*7;
+
 parameter k = 3;
 parameter stride = 2;
 reg [3:0] state = 4'b0000; //start state
@@ -30,11 +25,15 @@ reg [7:0] din;
 wire [7:0] dout;
 reg [(8*k*k)-1:0] flattened;
 reg [7:0] pooled_results;
+wire [7:0] pooling_module_out,pooling_module_out_max,pooling_module_out_amd;
 
-wire [7:0] pooling_module_out;
 
+kernalpooling uut(
+    .b(flattened), .out(pooling_module_out)
 
-kernalpooling uut(.b(flattened), .out(pooling_module_out));
+        );
+Maxpooling uut34 (.Input(flattened), .Output(pooling_module_out_max));
+kernalpoolingmax uut14( .b(flattened), .out(pooling_module_out_amd));
 
 
 //STATES:
@@ -84,6 +83,7 @@ begin
                 wen1 <= 0;
                 counter1 <= 0;
                 
+                
                 done <= 0;
                 curr_state <= 4'b0000; 
             if(start) state <= 4'b0001; // if start is 1, move to read state
@@ -117,7 +117,7 @@ begin
         4'b0100: // store in flattened 
         begin
         curr_state <= 4'b0100;
-        flattened[ (counter * 8) +: 8 ] <= dout; //store it in the respective index of flattened
+        flattened[ (counter * 8) +: 8 ] = dout; //store it in the respective index of flattened
         if (counter == (k*k) -1 ) begin //if all elements in the kernel have been traversed, then move to pooling state
         counter<=0; //reset counter, i , j for the next kernel
         i<=0;
@@ -141,7 +141,9 @@ begin
         
         4'b1001: // stote pooled results
         begin
-        pooled_results <= pooling_module_out; // storepooled results
+        if (mode == 0)pooled_results <= pooling_module_out; // storepooled results for BWAD if mode is 0 
+        else if (mode == 1) pooled_results <= pooling_module_out_amd;  // store pooled results for AMD if mode is 1
+        else if (mode ==2) pooled_results <= pooling_module_out_max; // store pooled results for MAX pooling if mode is 2;
         state<= 4'b0101;
         end
         
@@ -177,7 +179,7 @@ begin
             end
             else begin
                 movex <= 0;
-                if (movey +stride <= x- k)begin
+                if (movey +stride <= (x- k))begin
                     movey <= movey +stride;
                     i <= 0;
                     j <= 0;
