@@ -34,10 +34,7 @@ reg [7:0] pooled_results;
 wire [7:0] pooling_module_out;
 
 
-kernalpooling uut(
-    .b(flattened), .out(pooling_module_out)
-
-        );
+kernalpooling uut(.b(flattened), .out(pooling_module_out));
 
 
 //STATES:
