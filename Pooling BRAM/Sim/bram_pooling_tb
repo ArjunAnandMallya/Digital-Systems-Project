@@ -1,0 +1,33 @@
+`timescale 1ns / 1ps
+module bram_pooling_tb;
+    reg clk;
+    reg start;
+    reg [15:0] infer_addr;
+    wire [7:0] infer_dout;
+    wire done;
+    wire [3:0] curr_state;
+    integer addr;
+    Pooling_Bram uut (
+        .clk(clk),
+        .start(start),
+        .infer_addr(infer_addr),
+        .infer_dout(infer_dout),
+        .done(done),
+        .curr_state(curr_state)
+    );
+    always #1 clk = ~clk;
+    initial begin
+    
+        clk = 0;start = 0; infer_addr = 0;
+        #20;
+        start = 1;
+        #10;
+        start = 0;
+        wait(done == 1);
+        #20;
+
+        #100;  
+        $finish;
+    end
+
+endmodule
