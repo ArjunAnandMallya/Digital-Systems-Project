@@ -6,7 +6,8 @@ module Controller(
     output tx_busy,
     output done_uart,
     output pooling_done,
-    output disabled
+    output disabled,
+    input [1:0] mode
 );
 
     // Pooling Utils
@@ -16,7 +17,7 @@ module Controller(
     wire actual_clock;
     reg [11:0] read_addr = 0;
     
-    Devider clk_devider(clk, done_pooling, actual_clock);
+    Devider clk_devider(clk, 1'b1, actual_clock);
 
     // UART
     reg tx_enable = 0;
@@ -43,13 +44,14 @@ module Controller(
         .start(start_pooling),
         .infer_addr(read_addr),
         .infer_dout(infer_dout),
-        .done(done_pooling)
+        .done(done_pooling),
+        .mode(mode)
     );
 
     // UART TX instance
     uart_tx uart (
         .clk(actual_clock),
-        .tx_enable(tx_enable & ~completed),
+        .tx_enable(tx_enable),
         .data(tx_data),
         .tx(tx),
         .tx_busy(tx_busy)
@@ -117,7 +119,6 @@ module Controller(
 
                         if (transmit_counter == (63*63 - 1)) begin
                             state <= IDLE;
-                            completed <= 1;
                         end else begin
                             state <= READ_WAIT;
                         end
