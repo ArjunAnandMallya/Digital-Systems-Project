@@ -1,7 +1,7 @@
 
 `timescale 1ns / 1ps
 
-module Pooling_Bram(input clk, input start,input [1:0] mode, input [15:0] infer_addr, output [7:0] infer_dout, output reg done, output reg [3:0] curr_state, input reset, input WBRAM, input [7:0] WBRAMDATA, input [15:0] WBRAMaddress);
+module Pooling_Bram(input clk, input start,input [1:0] mode, input [15:0] infer_addr, output [7:0] infer_dout, output reg done, output reg [3:0] curr_state, input reset, input WBRAM, input [7:0] WBRAMDATA, input [13:0] WBRAMaddress);
 
 //parametrisation
 
@@ -57,7 +57,14 @@ reg [7:0] din1;
 
 wire [7:0] dout1;
 assign infer_dout = dout1;
-BRAM inst1(.clk(clk), .en(ren || wen), .ren(ren), .wen(!start ? wen :  WBRAM), .addr(!start ? addr : WBRAMaddress), .din(!start ? din: WBRAMDATA ), .dout(dout));
+
+wire en_bram = !start ? WBRAM : (ren || wen);
+wire wen_bram = !start ? WBRAM : wen;
+wire ren_bram = !start ? 1'b0 : ren;
+wire [13:0] addr_bram = !start ? WBRAMaddress : addr;
+wire [7:0] din_bram = !start ? WBRAMDATA : din;
+
+BRAM inst1(.clk(clk), .en(en_bram), .ren(ren_bram), .wen(wen_bram), .addr(addr_bram), .din(din_bram), .dout(dout));
 BRAMout inst2(.clk(clk), .en(ren1 || wen1), .ren(ren1), .wen(wen1), .addr(addr1), .din(din1), .dout(dout1));
 
 
