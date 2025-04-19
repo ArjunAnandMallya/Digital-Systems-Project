@@ -68,7 +68,7 @@
 
 ![alt text](Doc/image-10.png)
 
-# Referances
+# References
 
 1. “Layer-Specific hardware pooling designs for CNN accelerators,” IEEE Conference Publication | IEEE Xplore, Jan. 04, 2025. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10900660
 
