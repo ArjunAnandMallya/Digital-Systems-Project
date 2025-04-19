@@ -22,49 +22,49 @@
 
 ## Final Hardware Pipeline
 
-![alt text](image.png)
+![alt text](Doc/image.png)
 
 ## Hardware Implemetation
 
-![alt text](image-1.png)
+![alt text](Doc/image-1.png)
 
 # Pooling
 
 ## Visualisation of Pooling
 
-![alt text](image-2.png)
+![alt text](Doc/image-2.png)
 
 ## MAX Pooling
 
-![alt text](image-3.png)
+![alt text](Doc/image-3.png)
 
 ## Absolute Maximum Deviation Pooling
 
-![alt text](image-4.png)
+![alt text](Doc/image-4.png)
 
 ## Binary Weighted Absolute Deviation
 
-![alt text](image-5.png)
+![alt text](Doc/image-5.png)
 
 ## Absolute Average Deviation
 
-![alt text](image-6.png)
+![alt text](Doc/image-6.png)
 
 ## Utilisation Metrics
 
-![alt text](image-8.png)
+![alt text](Doc/image-8.png)
 
 # BRAM Contol Flow
 
-![alt text](image-7.png)
+![alt text](Doc/image-7.png)
 
 # UART Control Flow
 
-![alt text](image-9.png)
+![alt text](Doc/image-9.png)
 
 # Power Utilisation
 
-![alt text](image-10.png)
+![alt text](Doc/image-10.png)
 
 
 
