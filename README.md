@@ -22,7 +22,8 @@
 
 ## Final Hardware Pipeline
 
-![alt text](Doc/image.png)
+![image](https://github.com/user-attachments/assets/051b691f-6eb5-4a85-ba25-90a40c56b892)
+
 
 ## Hardware Implemetation
 
@@ -60,11 +61,16 @@
 
 # UART Control Flow
 
-![alt text](Doc/image-9.png)
+![image](https://github.com/user-attachments/assets/56ec665d-cf04-42e1-b01c-fc7c0c1e1cc7)
+
 
 # Power Utilisation
 
 ![alt text](Doc/image-10.png)
+
+
+
+
 
 
 
