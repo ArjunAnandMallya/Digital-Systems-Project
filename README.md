@@ -68,6 +68,17 @@
 
 ![alt text](Doc/image-10.png)
 
+# Referances
+
+1. “Layer-Specific hardware pooling designs for CNN accelerators,” IEEE Conference Publication | IEEE Xplore, Jan. 04, 2025. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10900660
+
+
+2. “High performance and energy efficient AMD and BWAD pooling schemes characterised for CNN accelerators,” IEEE Conference Publication | IEEE Xplore, Sep. 06, 2023. https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10456859
+
+3. S. Das, UART Transmitter Module, Version 1.2, Nov. 27, 2021. [Updated: Nov. 28, 2021]. [Online]. Available: https://github.com/Shubhayu-Das/UART-basys3. [Accessed: Apr. 16, 2025].
+
+4. H. Ruparel, Image-Processing-Toolkit-IPT1, https://github.com/Robohrriday/Image-Processing-Toolkit--IPT1 (accessed Apr. 16, 2025). 
+
 
 
 
