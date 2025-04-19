@@ -18,7 +18,7 @@
 
 - **Github Repo Link**: <a href="https://github.com/ArjunAnandMallya/Digital-Systems-Project">https://github.com/ArjunAnandMallya/Digital-Systems-Project</a>
 
-- **Video Link**: <a href="https://iitgnacin-my.sharepoint.com/:v:/g/personal/23110362_iitgn_ac_in/EUyYeVOFENZLgfJCnyZZixEBjRhKEr3Et0tte__TPPp3IQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=Bh1bHk ">Video Link</a>
+- **Video Link**: <a href="https://iitgnacin-my.sharepoint.com/:v:/g/personal/23110362_iitgn_ac_in/EUyYeVOFENZLgfJCnyZZixEBjRhKEr3Et0tte__TPPp3IQ?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJPbmVEcml2ZUZvckJ1c2luZXNzIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXciLCJyZWZlcnJhbFZpZXciOiJNeUZpbGVzTGlua0NvcHkifX0&e=nmH4J9">Video Link</a>
 
 ## Final Hardware Pipeline
 
